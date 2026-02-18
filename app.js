@@ -6,19 +6,17 @@ const orderRoutes = require('./src/routes/orderRoutes');
 
 const app = express();
 
-// Allowed origins (production + local dev for convenience)
+// Allowed origins (only production – remove localhost if you don't need local testing anymore)
 const allowedOrigins = [
-  'https://wallet-system1.netlify.app',  // ← your frontend URL on Netlify
+  'https://wallet-system1.netlify.app',
+  // 'http://localhost:5173',   // ← uncomment only if testing locally
 ];
 
-// CORS configuration with reflective origin
+// CORS configuration – reflective origin (best practice)
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests without origin (e.g. curl, Postman, mobile)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, origin);   // echo back the exact origin (required for credentials in future)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin);   // echo back the requesting origin
     } else {
       console.warn(`CORS blocked for origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
@@ -26,28 +24,25 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'client-id', 'x-admin-secret', 'Authorization'],
-  credentials: false,  // change to true only if you send cookies / auth credentials
+  credentials: false,
 }));
 
-// Ensure OPTIONS preflight is handled for all routes (important on Render/Netlify setups)
-app.options('*', cors());
-
-// Temporary debug middleware – logs incoming origin (remove after testing)
+// Debug log for incoming requests (keep temporarily to confirm in Render logs)
 app.use((req, res, next) => {
-  console.log(`[CORS DEBUG] ${req.method} ${req.path} from origin: ${req.headers.origin || 'none'}`);
+  console.log(`[DEBUG] ${req.method} ${req.path} from origin: ${req.headers.origin || 'none'}`);
   next();
 });
 
 app.use(express.json());
 
-// Routes – NO /api prefix
+// Routes
 app.use('/admin/wallet', walletRoutes);
 app.use('/orders', orderRoutes);
 app.use('/wallet', walletRoutes);  // → /wallet/balance, /wallet/history
 
-// 404 handler – keep it last (updated message to confirm code is live)
+// 404 handler – last
 app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found – code updated 2025' });
+  res.status(404).json({ error: 'Endpoint not found – code updated' });
 });
 
 module.exports = app;
