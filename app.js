@@ -8,7 +8,7 @@ const app = express();
 
 // CORS - allow Vite frontend
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://wallet-system1.netlify.app/',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'client-id', 'x-admin-secret', 'Authorization'],
   credentials: false,
